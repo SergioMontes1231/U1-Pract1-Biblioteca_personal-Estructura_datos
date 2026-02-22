@@ -14,16 +14,15 @@ class BibliotecaPersonal:
   def esta_vacia(self):
     """ Regresa un valor que puede ser True o False, dependiendo de si la lista tiene al menos un libro o no."""
      return self.cabeza is None
-    
-  def __str__(self):
-    return f"{self.cabeza is None}"
 
   def cantidad_libros(self):
     return self.cantidad
-
-  def __str__(self):
-    return f"{self.cantidad}"
-      
+    
+  def __str__(self): #Solo puede existir uno por clase
+     if self.esta_vacia():
+       return "Lista vacía"
+      return f"Cantidad de libros: {self.cantidad}"
+    
   def insertar_libro_al_inicio(self, libro):
     """ Está función se encarga de como su nombre lo indica, insertar un libro al inicio de la lista, lo que convierte a este
     libro en la nueva cabeza de la lista. """
@@ -57,5 +56,5 @@ class BibliotecaPersonal:
       self.cola.siguiente = nuevo_objeto
       self.cola = nuevo_objeto
     self.cantidad += 1
-
+# Hasta aquí me quede :)
     
