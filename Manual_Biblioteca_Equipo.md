@@ -159,17 +159,6 @@ snake_case
 
 Todas las clases y métodos deben tener docstrings.
 
-Clases:
-```
-class NombreClase:
-    
-    Describe qué representa esta clase.
-
-    Atributos:
-        atributo1 (tipo): Qué es.
-        atributo2 (tipo): Qué es.
-    """
-```
 ### Ejemplo de clase
 
 ``` python
@@ -185,20 +174,7 @@ class Libro:
         categoria (str): Categoria del libro.
     """
 ```
-Metodos:
-```
-def metodo(self, parametro1, parametro2):
-    """
-    Explica qué hace el método.
 
-    Args:
-        parametro1 (tipo): Qué representa.
-        parametro2 (tipo): Qué representa.
-
-    Returns:
-        tipo: Qué devuelve.
-    """
-```
 ### Ejemplo de método
 
 ``` python
