@@ -329,7 +329,178 @@ class BibliotecaPersonal:
 # =================================================
 
 class SistemaGestion:
-  pass
+      """
+    Coordina las operaciones entre la interfaz y la estructura de datos.
+    Actua como puente entre la lista doblemente enlazada y la interfaz de usuario.
+    
+    Atributos:
+        biblioteca (BibliotecaPersonal): Instancia de la biblioteca que maneja la lista de libros.
+    """
+    
+    def __init__(self):
+        """
+        Inicializa el sistema de gestion con una biblioteca vacia.
+        """
+        self.biblioteca = BibliotecaPersonal()
+
+    def agregar_libro(self, titulo, autor, anio, isbn, categoria):
+        """
+        Agrega un nuevo libro a la biblioteca.
+        
+        Args:
+            titulo (str): Título del libro.
+            autor (str): Autor del libro.
+            anio (int): Año de publicacion.
+            isbn (str): ISBN unico del libro.
+            categoria (str): Categoria del libro.
+            
+        Returns:
+            str: Mensaje de confirmacion.
+        """
+        # Verificar si ya existe un libro con el mismo ISBN
+        if self.biblioteca.buscar_por_isbn(isbn):
+            return f"Ya existe un libro con el ISBN {isbn}"
+        
+        libro = Libro(titulo, autor, anio, isbn, categoria)
+        self.biblioteca.insertar_ordenado(libro)
+        return f"Libro '{titulo}' agregado correctamente"
+
+    def buscar_por_isbn(self, isbn):
+        """
+        Busca un libro por su ISBN.
+        
+        Args:
+            isbn (str): ISBN del libro a buscar.
+            
+        Returns:
+            str: Información del libro o mensaje de no encontrado.
+        """
+        libro = self.biblioteca.buscar_por_isbn(isbn)
+        if libro:
+            return str(libro)
+        return f"No se encontro ningun libro con ISBN {isbn}"
+
+    def buscar_por_autor(self, autor):
+        """
+        Busca libros por autor.
+        
+        Args:
+            autor (str): Nombre del autor.
+            
+        Returns:
+            str: Lista de libros del autor o mensaje de no encontrados.
+        """
+        libros = self.biblioteca.buscar_por_autor(autor)
+        if libros:
+            resultado = f"Libros de {autor}:\n"
+            resultado += "==========================\n"
+            for libro in libros:
+                resultado += str(libro) + "\n" + "-" * 20 + "\n"
+            return resultado
+        return f"No se encontraron libros del autor {autor}"
+
+    def buscar_por_categoria(self, categoria):
+        """
+        Busca libros por categoria.
+        
+        Args:
+            categoria (str): Categoria a buscar.
+            
+        Returns:
+            str: Lista de libros de la categoria o mensaje de no encontrados.
+        """
+        libros = self.biblioteca.buscar_por_categoria(categoria)
+        if libros:
+            resultado = f"Libros en categoria '{categoria}':\n"
+            resultado += "==========================\n"
+            for libro in libros:
+                resultado += str(libro) + "\n" + "-" * 20 + "\n"
+            return resultado
+        return f"No se encontraron libros en la categoria {categoria}"
+
+    def actualizar_libro(self, isbn, titulo, autor, anio, categoria):
+        """
+        Actualiza la informacion de un libro existente.
+        
+        Args:
+            isbn (str): ISBN del libro a actualizar.
+            titulo (str): Nuevo título.
+            autor (str): Nuevo autor.
+            anio (int): Nuevo año.
+            categoria (str): Nueva categoría.
+            
+        Returns:
+            str: Mensaje de confirmacion o error.
+        """
+        resultado = self.biblioteca.actualizar_libro(isbn, titulo, autor, anio, categoria)
+        return resultado
+
+    def eliminar_libro(self, isbn):
+        """
+        Elimina un libro por su ISBN.
+        
+        Args:
+            isbn (str): ISBN del libro a eliminar.
+            
+        Returns:
+            str: Mensaje de confirmación o error.
+        """
+        return self.biblioteca.eliminar_por_isbn(isbn)
+
+    def mostrar_todos(self):
+        """
+        Muestra todos los libros en orden alfabético.
+        
+        Returns:
+            str: Lista completa de libros o mensaje de biblioteca vacía.
+        """
+        if self.biblioteca.esta_vacia():
+            return "La biblioteca esta vacia"
+        
+        resultado = f"=== BIBLIOTECA PERSONAL ===\n"
+        resultado += f"Total de libros: {self.biblioteca.cantidad}\n"
+        rresultado += "==========================\n"
+        resultado += self.biblioteca.mostrar_todos()
+        return resultado
+
+    def mostrar_inverso(self):
+        """
+        Muestra todos los libros en orden inverso.
+        
+        Returns:
+            str: Lista completa de libros en orden inverso.
+        """
+        if self.biblioteca.esta_vacia():
+            return "La biblioteca esta vacia"
+        
+        resultado = f"=== BIBLIOTECA PERSONAL (ORDEN INVERSO) ===\n"
+        resultado += f"Total de libros: {self.biblioteca.cantidad}\n"
+        resultado += "==========================\n\n"
+        resultado += self.biblioteca.mostrar_todos_inverso()
+        return resultado
+
+    def obtener_estadisticas(self):
+        """
+        Obtiene estadísticas de la biblioteca.
+        
+        Returns:
+            str: Estadisticas de la biblioteca.
+        """
+        if self.biblioteca.esta_vacia():
+            return "La biblioteca está vacia"
+        
+        # Contar categorias unicas
+        categorias = set()
+        actual = self.biblioteca.cabeza
+        while actual:
+            categorias.add(actual.dato.categoria)
+            actual = actual.siguiente
+        
+        stats = f"=== ESTADISTICAS ===\n"
+        stats += f"Total de libros: {self.biblioteca.cantidad}\n"
+        stats += f"Categorias: {len(categorias)}\n"
+        stats += f"Categorias: {', '.join(categorias)}"
+        return stats
 
 # =================================================
 # INTERFAZ (ESTA AL FINAL)
