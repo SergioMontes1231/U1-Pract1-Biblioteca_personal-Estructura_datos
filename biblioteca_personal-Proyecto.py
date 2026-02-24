@@ -1,3 +1,6 @@
+import tkinter as tk
+from tkinter import messagebox, simpledialog
+
 # =================================================
 # MODELOS
 # =================================================
@@ -59,7 +62,6 @@ class Libro:
     self.autor = autor
     self.anio = anio
     self.categoria = categoria
-
 # =================================================
 # ESTRUCTURA
 # =================================================
@@ -317,8 +319,8 @@ class SistemaGestion:
         # La impresion sera responsabilidad de la capa de interfaz.
         pass
 
-    def agregar_libro(self, titulo: str, autor: str, anio: int, 
-                      isbn: str, categoria: str) -> str:
+    def agregar_libro(self, titulo: str, autor: str, anio: int,
+                  isbn: str, categoria: str, modo: str = "ordenado") -> str:
         """
         Agrega un nuevo libro a la biblioteca de forma ordenada.
 
@@ -332,13 +334,25 @@ class SistemaGestion:
         Returns:
             str: Mensaje confirmando la operacion.
         """
-        # Crear el nuevo libro
+        # Validar campos vacíos
+        if not titulo.strip() or not autor.strip() or not isbn.strip() or not categoria.strip():
+            raise ValueError("No se permiten campos vacíos.")
+
+        # Validar duplicado
+        if self.biblioteca.buscar_por_isbn(isbn):
+            raise ValueError("El ISBN ya existe en el sistema.")
+
+         # Crear el nuevo libro
         nuevo_libro = Libro(titulo, autor, anio, isbn, categoria)
-        
-        # Insertar de forma ordenada en la biblioteca
-        self.biblioteca.insertar_ordenado(nuevo_libro)
-        
-        return f"Libro '{titulo}' agregado exitosamente a la biblioteca."
+
+        if modo == "inicio":
+            self.biblioteca.insertar_libro_al_inicio(nuevo_libro)
+        elif modo == "final":
+            self.biblioteca.insertar_libro_al_final(nuevo_libro)
+        else:
+            self.biblioteca.insertar_ordenado(nuevo_libro)
+
+        return f"Libro '{titulo}' agregado correctamente."
 
     def consultar_libros(self) -> str:
         """
@@ -389,8 +403,8 @@ class SistemaGestion:
         else:
             return f"Criterio de busqueda no valido: {criterio}"
 
-    def actualizar_libro(self, isbn: str, titulo: str, autor: str, 
-                        anio: int, categoria: str) -> str:
+    def actualizar_libro(self, isbn: str, titulo: str, autor: str,
+                     anio: int, categoria: str) -> str:
         """
         Actualiza la informacion de un libro existente.
 
@@ -404,6 +418,9 @@ class SistemaGestion:
         Returns:
             str: Mensaje indicando el resultado de la operacion.
         """
+        if not self.biblioteca.buscar_por_isbn(isbn):
+            raise ValueError("No existe un libro con ese ISBN.")
+
         return self.biblioteca.actualizar_libro(isbn, titulo, autor, anio, categoria)
 
     def eliminar_libro(self, isbn: str) -> str:
@@ -416,6 +433,10 @@ class SistemaGestion:
         Returns:
             str: Mensaje indicando el resultado de la operacion.
         """
+
+        if not self.biblioteca.buscar_por_isbn(isbn):
+            raise ValueError("No existe un libro con ese ISBN.")
+
         return self.biblioteca.eliminar_por_isbn(isbn)
 
     def ejecutar(self) -> None:
@@ -460,6 +481,166 @@ class SistemaGestion:
         return resultado
       
 # =================================================
-# INTERFAZ (ESTA AL FINAL)
+# INTERFAZ
 # =================================================
 
+
+class InterfazBiblioteca:
+    """
+    Gestiona la interfaz gráfica del sistema bibliotecario.
+    """
+
+    def __init__(self):
+        self.sistema = SistemaGestion()
+
+        self.ventana = tk.Tk()
+        self.ventana.title("Sistema de Gestión Biblioteca")
+        self.ventana.geometry("520x600")
+        self.ventana.resizable(False, False)
+        self.ventana.configure(bg="#f4f6f9")
+
+        self._crear_componentes()
+
+    def _crear_componentes(self):
+        """
+        Crea los componentes visuales principales.
+        """
+
+        # Marco principal
+        frame = tk.Frame(self.ventana, bg="#ffffff", bd=2, relief="groove")
+        frame.place(relx=0.5, rely=0.5, anchor="center", width=420, height=520)
+
+        # Título
+        tk.Label(
+            frame,
+            text="SISTEMA DE GESTIÓN\nBIBLIOTECARIA PERSONAL",
+            font=("Segoe UI", 16, "bold"),
+            bg="#ffffff",
+            fg="#2c3e50"
+        ).pack(pady=20)
+
+
+        # Botones
+        botones = [
+            ("Agregar libro", self.agregar_libro),
+            ("Consultar libros", self.consultar_libros),
+            ("Consultar libros (Inverso)", self.consultar_libros_inverso),
+            ("Buscar libro", self.buscar_libro),
+            ("Actualizar libro", self.actualizar_libro),
+            ("Eliminar libro", self.eliminar_libro),
+            ("Salir", self.ventana.destroy),
+        ]
+
+        for texto, comando in botones:
+            tk.Button(
+                frame,
+                text=texto,
+                command=comando,
+                width=28,
+                height=2,
+                bg="#3498db",
+                fg="white",
+                font=("Segoe UI", 10, "bold"),
+                bd=0,
+                activebackground="#2980b9",
+                cursor="hand2"
+            ).pack(pady=8)
+    
+    # =================================================
+    # MÉTODOS DE INTERACCIÓN
+    # =================================================
+
+    def agregar_libro(self):
+        titulo = simpledialog.askstring("Título", "Ingrese el título:")
+        autor = simpledialog.askstring("Autor", "Ingrese el autor:")
+        anio = simpledialog.askinteger("Año", "Ingrese el año:")
+        isbn = simpledialog.askstring("ISBN", "Ingrese el ISBN:")
+        categoria = simpledialog.askstring("Categoría", "Ingrese la categoría:")
+        modo = simpledialog.askstring(
+            "Modo de inserción",
+            "Insertar en: inicio / final / ordenado"
+        )
+
+        if None in (titulo, autor, anio, isbn, categoria, modo):
+            return
+
+        try:
+            resultado = self.sistema.agregar_libro(
+                titulo, autor, anio, isbn, categoria, modo
+            )
+            messagebox.showinfo("Resultado", resultado)
+
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+
+    def consultar_libros(self):
+        resultado = self.sistema.consultar_libros()
+        messagebox.showinfo("Libros registrados", resultado)
+
+    def consultar_libros_inverso(self):
+        resultado = self.sistema.biblioteca.mostrar_todos_inverso()
+        messagebox.showinfo("Libros (orden inverso)", resultado)
+
+    def buscar_libro(self):
+        criterio = simpledialog.askstring(
+            "Buscar libro",
+            "Buscar por: isbn / autor / categoria"
+        )
+
+        valor = simpledialog.askstring(
+            "Valor",
+            "Ingrese el valor:"
+        )
+
+        if criterio is None or valor is None:
+            return
+
+        try:
+            resultado = self.sistema.buscar_libro(criterio, valor)
+            messagebox.showinfo("Resultado", resultado)
+
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+
+    def actualizar_libro(self):
+        isbn = simpledialog.askstring("Actualizar", "Ingrese el ISBN del libro:")
+        if not isbn:
+            return
+
+        titulo = simpledialog.askstring("Nuevo título", "Ingrese el nuevo título:")
+        autor = simpledialog.askstring("Nuevo autor", "Ingrese el nuevo autor:")
+        anio = simpledialog.askinteger("Nuevo año", "Ingrese el nuevo año:")
+        categoria = simpledialog.askstring("Nueva categoría", "Ingrese la nueva categoría:")
+
+        if None in (titulo, autor, anio, categoria):
+            return
+
+        try:
+            resultado = self.sistema.actualizar_libro(
+                isbn, titulo, autor, anio, categoria
+            )
+            messagebox.showinfo("Resultado", resultado)
+
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+
+    def eliminar_libro(self):
+        isbn = simpledialog.askstring("Eliminar", "Ingrese el ISBN del libro:")
+        if not isbn:
+            return
+
+        try:
+            resultado = self.sistema.eliminar_libro(isbn)
+            messagebox.showinfo("Resultado", resultado)
+
+        except ValueError as e:
+            messagebox.showerror("Error", str(e))
+
+
+# =================================================
+# EJECUCIÓN PRINCIPAL
+# =================================================
+
+if __name__ == "__main__":
+    app = InterfazBiblioteca()
+    app.ventana.mainloop()
