@@ -329,7 +329,7 @@ class BibliotecaPersonal:
 # =================================================
 
 class SistemaGestion:
-      """
+    """
     Coordina las operaciones entre la interfaz y la estructura de datos.
     Actua como puente entre la lista doblemente enlazada y la interfaz de usuario.
     
