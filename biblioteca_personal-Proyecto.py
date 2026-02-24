@@ -327,181 +327,192 @@ class BibliotecaPersonal:
 # =================================================
 # Logica
 # =================================================
-
 class SistemaGestion:
     """
-    Coordina las operaciones entre la interfaz y la estructura de datos.
-    Actua como puente entre la lista doblemente enlazada y la interfaz de usuario.
+    Coordina la logica de negocio del sistema de gestion bibliotecaria,
+    Esta clase actua como intermediaria entre la interfaz de usuario y
+    la estructura de datos (BibliotecaPersonal), proporcionando metodos
+    para manipular la colección de libros de manera controlada.
     
     Atributos:
-        biblioteca (BibliotecaPersonal): Instancia de la biblioteca que maneja la lista de libros.
+        biblioteca (BibliotecaPersonal): Instancia de la biblioteca que
+                                        contiene y gestiona los libros.
     """
-    
+
     def __init__(self):
         """
-        Inicializa el sistema de gestion con una biblioteca vacia.
+        Inicializa el sistema de gestion creando una nueva biblioteca personal.
         """
         self.biblioteca = BibliotecaPersonal()
 
-    def agregar_libro(self, titulo, autor, anio, isbn, categoria):
+    def menu_principal(self) -> None:
         """
-        Agrega un nuevo libro a la biblioteca.
+        Muestra las opciones disponibles del sistema.
         
+        Este metodo sera utilizado por la capa de interfaz para mostrar
+        las opciones al usuario. No contiene logica de entrada/salida,
+        solo define el texto del menú.
+        
+        Returns:
+            None
+        """
+        menu = """
+==================================
+    SISTEMA DE GESTION BIBLIOTECA
+==================================
+1. Agregar libro
+2. Consultar todos los libros
+3. Buscar libro
+4. Actualizar libro
+5. Eliminar libro
+6. Salir
+==================================
+        """
+        # La impresion sera responsabilidad de la capa de interfaz.
+        pass
+
+    def agregar_libro(self, titulo: str, autor: str, anio: int, 
+                      isbn: str, categoria: str) -> str:
+        """
+        Agrega un nuevo libro a la biblioteca de forma ordenada.
+
         Args:
             titulo (str): Título del libro.
             autor (str): Autor del libro.
             anio (int): Año de publicacion.
             isbn (str): ISBN unico del libro.
             categoria (str): Categoria del libro.
-            
-        Returns:
-            str: Mensaje de confirmacion.
-        """
-        # Verificar si ya existe un libro con el mismo ISBN
-        if self.biblioteca.buscar_por_isbn(isbn):
-            return f"Ya existe un libro con el ISBN {isbn}"
-        
-        libro = Libro(titulo, autor, anio, isbn, categoria)
-        self.biblioteca.insertar_ordenado(libro)
-        return f"Libro '{titulo}' agregado correctamente"
 
-    def buscar_por_isbn(self, isbn):
+        Returns:
+            str: Mensaje confirmando la operacion.
         """
-        Busca un libro por su ISBN.
+        # Crear el nuevo libro
+        nuevo_libro = Libro(titulo, autor, anio, isbn, categoria)
         
+        # Insertar de forma ordenada en la biblioteca
+        self.biblioteca.insertar_ordenado(nuevo_libro)
+        
+        return f"Libro '{titulo}' agregado exitosamente a la biblioteca."
+
+    def consultar_libros(self) -> str:
+        """
+        Obtiene una representacion de todos los libros en la biblioteca.
+
+        Returns:
+            str: Lista formateada de todos los libros o mensaje de biblioteca vacia.
+        """
+        if self.biblioteca.esta_vacia():
+            return "La biblioteca esta vacia. No hay libros para mostrar."
+        
+        return self.biblioteca.mostrar_todos()
+
+    def buscar_libro(self, criterio: str, valor: str) -> str:
+        """
+        Busca libros segun diferentes criterios.
+
         Args:
-            isbn (str): ISBN del libro a buscar.
-            
-        Returns:
-            str: Información del libro o mensaje de no encontrado.
-        """
-        libro = self.biblioteca.buscar_por_isbn(isbn)
-        if libro:
-            return str(libro)
-        return f"No se encontro ningun libro con ISBN {isbn}"
+            criterio (str): Tipo de busqueda ('isbn', 'autor', 'categoria').
+            valor (str): Valor a buscar.
 
-    def buscar_por_autor(self, autor):
+        Returns:
+            str: Resultado de la busqueda formateado.
         """
-        Busca libros por autor.
+        resultado = None
         
-        Args:
-            autor (str): Nombre del autor.
-            
-        Returns:
-            str: Lista de libros del autor o mensaje de no encontrados.
-        """
-        libros = self.biblioteca.buscar_por_autor(autor)
-        if libros:
-            resultado = f"Libros de {autor}:\n"
-            resultado += "==========================\n"
-            for libro in libros:
-                resultado += str(libro) + "\n" + "-" * 20 + "\n"
-            return resultado
-        return f"No se encontraron libros del autor {autor}"
-
-    def buscar_por_categoria(self, categoria):
-        """
-        Busca libros por categoria.
+        if criterio.lower() == 'isbn':
+            libro = self.biblioteca.buscar_por_isbn(valor)
+            if libro:
+                return f"Libro encontrado:\n{str(libro)}"
+            else:
+                return f"No se encontro ningun libro con ISBN: {valor}"
         
-        Args:
-            categoria (str): Categoria a buscar.
-            
-        Returns:
-            str: Lista de libros de la categoria o mensaje de no encontrados.
-        """
-        libros = self.biblioteca.buscar_por_categoria(categoria)
-        if libros:
-            resultado = f"Libros en categoria '{categoria}':\n"
-            resultado += "==========================\n"
-            for libro in libros:
-                resultado += str(libro) + "\n" + "-" * 20 + "\n"
-            return resultado
-        return f"No se encontraron libros en la categoria {categoria}"
+        elif criterio.lower() == 'autor':
+            resultados = self.biblioteca.buscar_por_autor(valor)
+            if resultados:
+                return self._formatear_lista_libros(resultados, f"Libros de {valor}")
+            else:
+                return f"No se encontraron libros del autor: {valor}"
+        
+        elif criterio.lower() == 'categoria':
+            resultados = self.biblioteca.buscar_por_categoria(valor)
+            if resultados:
+                return self._formatear_lista_libros(resultados, f"Libros de categoria '{valor}'")
+            else:
+                return f"No se encontraron libros en la categoria: {valor}"
+        
+        else:
+            return f"Criterio de busqueda no valido: {criterio}"
 
-    def actualizar_libro(self, isbn, titulo, autor, anio, categoria):
+    def actualizar_libro(self, isbn: str, titulo: str, autor: str, 
+                        anio: int, categoria: str) -> str:
         """
         Actualiza la informacion de un libro existente.
-        
+
         Args:
             isbn (str): ISBN del libro a actualizar.
-            titulo (str): Nuevo título.
+            titulo (str): Nuevo titulo.
             autor (str): Nuevo autor.
-            anio (int): Nuevo año.
-            categoria (str): Nueva categoría.
-            
-        Returns:
-            str: Mensaje de confirmacion o error.
-        """
-        resultado = self.biblioteca.actualizar_libro(isbn, titulo, autor, anio, categoria)
-        return resultado
+            anio (int): Nuevo año de publicacion.
+            categoria (str): Nueva categoria.
 
-    def eliminar_libro(self, isbn):
+        Returns:
+            str: Mensaje indicando el resultado de la operacion.
         """
-        Elimina un libro por su ISBN.
-        
+        return self.biblioteca.actualizar_libro(isbn, titulo, autor, anio, categoria)
+
+    def eliminar_libro(self, isbn: str) -> str:
+        """
+        Elimina un libro de la biblioteca usando su ISBN.
+
         Args:
             isbn (str): ISBN del libro a eliminar.
-            
+
         Returns:
-            str: Mensaje de confirmación o error.
+            str: Mensaje indicando el resultado de la operacion.
         """
         return self.biblioteca.eliminar_por_isbn(isbn)
 
-    def mostrar_todos(self):
+    def ejecutar(self) -> None:
         """
-        Muestra todos los libros en orden alfabético.
+        Inicia la ejecucion principal del sistema.
+        
+        Este metodo sera implementado completamente en la capa de interfaz.
+        Aqui solo se define como placeholder para cumplir con el UML.
+        
+        La implementacion real en la capa de interfaz debera:
+        1. Mostrar el menu principal
+        2. Procesar la entrada del usuario
+        3. Llamar a los metodos correspondientes
+        4. Mostrar los resultados
         
         Returns:
-            str: Lista completa de libros o mensaje de biblioteca vacía.
+            None
         """
-        if self.biblioteca.esta_vacia():
-            return "La biblioteca esta vacia"
+        # Este metodo sera implementado en la capa de interfaz
+        pass
+
+    def _formatear_lista_libros(self, lista_libros: list, titulo: str) -> str:
+        """
+        Formatea una lista de libros para presentacion.
+
+        Args:
+            lista_libros (list): Lista de objetos Libro.
+            titulo (str): Título para la seccion.
+
+        Returns:
+            str: Texto formateado con todos los libros.
+        """
+        if not lista_libros:
+            return f"No hay libros para mostrar en {titulo}"
         
-        resultado = f"=== BIBLIOTECA PERSONAL ===\n"
-        resultado += f"Total de libros: {self.biblioteca.cantidad}\n"
-        rresultado += "==========================\n"
-        resultado += self.biblioteca.mostrar_todos()
+        resultado = f"\n{titulo}:\n" + "=" * 40 + "\n\n"
+        for i, libro in enumerate(lista_libros, 1):
+            resultado += f"Libro #{i}\n"
+            resultado += str(libro) + "\n"
+            resultado += "-" * 30 + "\n"
+        
         return resultado
-
-    def mostrar_inverso(self):
-        """
-        Muestra todos los libros en orden inverso.
-        
-        Returns:
-            str: Lista completa de libros en orden inverso.
-        """
-        if self.biblioteca.esta_vacia():
-            return "La biblioteca esta vacia"
-        
-        resultado = f"=== BIBLIOTECA PERSONAL (ORDEN INVERSO) ===\n"
-        resultado += f"Total de libros: {self.biblioteca.cantidad}\n"
-        resultado += "==========================\n\n"
-        resultado += self.biblioteca.mostrar_todos_inverso()
-        return resultado
-
-    def obtener_estadisticas(self):
-        """
-        Obtiene estadísticas de la biblioteca.
-        
-        Returns:
-            str: Estadisticas de la biblioteca.
-        """
-        if self.biblioteca.esta_vacia():
-            return "La biblioteca está vacia"
-        
-        # Contar categorias unicas
-        categorias = set()
-        actual = self.biblioteca.cabeza
-        while actual:
-            categorias.add(actual.dato.categoria)
-            actual = actual.siguiente
-        
-        stats = f"=== ESTADISTICAS ===\n"
-        stats += f"Total de libros: {self.biblioteca.cantidad}\n"
-        stats += f"Categorias: {len(categorias)}\n"
-        stats += f"Categorias: {', '.join(categorias)}"
-        return stats
-
+      
 # =================================================
 # INTERFAZ (ESTA AL FINAL)
 # =================================================
